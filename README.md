@@ -5,7 +5,7 @@
 
 `bulkkeychain` is an unofficial Go library for serializing and signing transactions for [Bulk](https://www.bulk.trade/).
 
-> This is an unofficial community library. It is not affiliated with or endorsed by Bulk, and it currently supports only the actions listed below. Review and test signing behavior before using it with production funds.
+> This is an unofficial community library. It is not affiliated with or endorsed by Bulk, and it currently supports only the actions listed below. 
 
 I started building this library to power [Clique](https://clique.trade) because I needed Bulk transaction signing in Go. Clique is a social trading product where friends in Telegram groups can share positions, copy friends, or countertrade them on Bulk.
 ## Installation
