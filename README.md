@@ -5,7 +5,6 @@
 
 `bulkkeychain` is an unofficial Go library for serializing and signing transactions for [Bulk](https://www.bulk.trade/).
 
-> [!WARNING]
 > This is an unofficial community library. It is not affiliated with or endorsed by Bulk, and it currently supports only the actions listed below. Review and test signing behavior before using it with production funds.
 
 I started building this library to power [Clique](https://clique.trade) because I needed Bulk transaction signing in Go. Clique is a social trading product where friends in Telegram groups can share positions, copy friends, or countertrade them on Bulk.
@@ -16,8 +15,6 @@ go get github.com/emeraldls/bulkkeychain
 ```
 
 ## Usage
-
-Create a key pair from your Base58 private key, create a signer, then sign a `SignInput`. JSON-encode the returned `SignMessage` for Bulk's `POST /order` endpoint.
 
 ```go
 keypair := bulkkeychain.NewKeyPair().WithBase58(base58PrivateKey)
@@ -56,6 +53,8 @@ if err != nil {
 
 ## Action support
 
+I only supported the actions I needed for Clique, but I can add more based on community requests & I welcome contributions for additional actions. The following table lists the supported actions and their Bulk API tags.
+
 | Action | Tag | Support |
 | --- | --- | --- |
 | Market | `m` | Supported |
@@ -68,10 +67,6 @@ if err != nil {
 | Transfer | `transfer` | Supported |
 | Approve builder code | `abc` | Supported |
 | Revoke builder code | `rbc` | Supported |
-
-Market and limit orders also support optional builder-code payloads.
-
-Additional actions may be added based on community demand. Open an issue or pull request with the use case and the relevant Bulk protocol documentation.
 
 ## Signing format
 
