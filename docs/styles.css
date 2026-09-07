@@ -1,0 +1,119 @@
+:root {
+  --theme-color: #c65f32;
+  --base-font-family: "IBM Plex Sans", sans-serif;
+  --mono-font-family: "IBM Plex Mono", monospace;
+}
+
+body {
+  background: #fbfaf7;
+  color: #2a2825;
+  font-family: var(--base-font-family);
+}
+
+.sidebar {
+  background: #f4f1ea;
+  border-right: 1px solid #ded9cf;
+  padding: 28px 20px;
+}
+
+.sidebar .app-name-link {
+  color: #26231f;
+  font-family: var(--mono-font-family);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.sidebar-nav a {
+  color: #625e57;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sidebar-nav li.active > a,
+.sidebar-nav a:hover {
+  color: var(--theme-color);
+}
+
+.markdown-section {
+  max-width: 860px;
+  padding: 48px 52px 80px;
+}
+
+.markdown-section h1,
+.markdown-section h2,
+.markdown-section h3 {
+  color: #26231f;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.markdown-section h1 {
+  font-family: var(--mono-font-family);
+  font-size: 34px;
+  margin-bottom: 12px;
+}
+
+.markdown-section h2 {
+  border-bottom: 1px solid #ded9cf;
+  font-size: 23px;
+  margin-top: 48px;
+  padding-bottom: 10px;
+}
+
+.markdown-section p,
+.markdown-section li {
+  line-height: 1.75;
+}
+
+.markdown-section a {
+  color: #a84822;
+  font-weight: 500;
+}
+
+.markdown-section code {
+  background: #eeeae2;
+  border-radius: 4px;
+  color: #7c351b;
+  font-family: var(--mono-font-family);
+}
+
+.markdown-section pre {
+  background: #24211d;
+  border: 1px solid #332f2a;
+  border-radius: 8px;
+  padding: 18px 20px;
+}
+
+.markdown-section pre code {
+  background: transparent;
+  color: #f4efe6;
+}
+
+.markdown-section blockquote {
+  background: #f3e9df;
+  border-left: 3px solid var(--theme-color);
+  color: #554d45;
+  margin: 24px 0;
+  padding: 12px 18px;
+}
+
+.markdown-section table {
+  display: table;
+  width: 100%;
+}
+
+.markdown-section th,
+.markdown-section td {
+  border-color: #ded9cf;
+  padding: 10px 12px;
+}
+
+@media (max-width: 768px) {
+  .markdown-section {
+    padding: 32px 22px 64px;
+  }
+
+  .markdown-section table {
+    display: block;
+  }
+}
