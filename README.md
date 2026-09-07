@@ -3,13 +3,12 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/emeraldls/bulkkeychain.svg)](https://pkg.go.dev/github.com/emeraldls/bulkkeychain)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-`bulkkeychain` is a Go library for serializing and signing order transactions for [Bulk](https://www.bulk.trade/).
+`bulkkeychain` is an unofficial Go library for serializing and signing transactions for [Bulk](https://www.bulk.trade/).
 
 > [!WARNING]
-> This is an unofficial community library. It is not affiliated with or endorsed by Bulk, and it currently supports only the order actions listed below. Review and test signing behavior before using it with production funds.
+> This is an unofficial community library. It is not affiliated with or endorsed by Bulk, and it currently supports only the actions listed below. Review and test signing behavior before using it with production funds.
 
-The library was originally built to power [Clique](https://clique.trade), a social trading product where Telegram groups can share positions, copy friends, or countertrade them on Bulk.
-
+I started building this library to power [Clique](https://clique.trade) because I needed Bulk transaction signing in Go. Clique is a social trading product where friends in Telegram groups can share positions, copy friends, or countertrade them on Bulk.
 ## Installation
 
 ```bash
@@ -18,10 +17,13 @@ go get github.com/emeraldls/bulkkeychain
 
 ## Usage
 
-Build an `OrderInput`, sign it with the private key belonging to the signer, then JSON-encode the returned `Order` for Bulk's `POST /order` endpoint.
+Create a key pair from your Base58 private key, create a signer, then sign a `SignInput`. JSON-encode the returned `SignMessage` for Bulk's `POST /order` endpoint.
 
 ```go
-input := bulkkeychain.OrderInput{
+keypair := bulkkeychain.NewKeyPair().WithBase58(base58PrivateKey)
+signer := bulkkeychain.NewSigner(keypair, bulkkeychain.Mainnet)
+
+input := bulkkeychain.SignInput{
 	Actions: []bulkkeychain.Action{
 		{
 			MarketOrder: &bulkkeychain.MarketOrderAction{
@@ -37,12 +39,12 @@ input := bulkkeychain.OrderInput{
 	Account: accountPublicKey,
 }
 
-order, err := bulkkeychain.SignOrder(input, privateKey, bulkkeychain.Mainnet)
+signed, err := signer.Sign(input)
 if err != nil {
 	return err
 }
 
-payload, err := json.Marshal(order)
+payload, err := json.Marshal(signed)
 if err != nil {
 	return err
 }
@@ -50,11 +52,11 @@ if err != nil {
 // Send payload to Bulk's POST /order endpoint.
 ```
 
-`Account` is the Bulk account being traded. `SignOrder` derives `Signer` from `privateKey`, so an authorized agent wallet can sign for a different account. The library creates the signature but does not submit the request.
+`Account` is the Bulk account authorizing the transaction. The signer public key is derived from the key pair, so an authorized agent wallet can sign for a different account. The library creates the signature but does not submit the request.
 
-## Order support
+## Action support
 
-| Order action | Tag | Support |
+| Action | Tag | Support |
 | --- | --- | --- |
 | Market | `m` | Supported |
 | Limit (GTC, IOC, ALO) | `l` | Supported |
@@ -63,14 +65,13 @@ if err != nil {
 | Cancel all | `cxa` | Supported |
 | Stop | `st` | Supported |
 | Take profit | `tp` | Supported |
-| Range / OCO | `rng` | Not supported |
-| Trigger basket | `trig` | Not supported |
-| Trailing stop | `trl` | Not supported |
-| On-fill | `of` | Not supported |
+| Transfer | `transfer` | Supported |
+| Approve builder code | `abc` | Supported |
+| Revoke builder code | `rbc` | Supported |
 
 Market and limit orders also support optional builder-code payloads.
 
-Additional order actions may be added based on community demand. Open an issue or pull request with the use case and the relevant Bulk protocol documentation.
+Additional actions may be added based on community demand. Open an issue or pull request with the use case and the relevant Bulk protocol documentation.
 
 ## Signing format
 

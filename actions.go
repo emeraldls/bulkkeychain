@@ -3,17 +3,18 @@ package bulkkeychain
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	"github.com/btcsuite/btcutil/base58"
 )
 
-func writeAction(buf *bytes.Buffer, orderAction OrderAction) error {
-	if err := binary.Write(buf, binary.LittleEndian, orderAction.Discriminant()); err != nil {
+func writeAction(buf *bytes.Buffer, signAction Signing) error {
+	if err := binary.Write(buf, binary.LittleEndian, signAction.Discriminant()); err != nil {
 		return fmt.Errorf("unable to write action discriminant: %w", err)
 	}
 
-	switch v := orderAction.(type) {
+	switch v := signAction.(type) {
 	case *MarketOrderAction:
 		return writeMarketOrder(buf, v)
 
@@ -35,8 +36,17 @@ func writeAction(buf *bytes.Buffer, orderAction OrderAction) error {
 	case *TakeProfitAction:
 		return writeTakeProfitOrder(buf, v)
 
+	case *BuilderCodeAction:
+		return writeApproveBuilderCodeAction(buf, v)
+
+	case *RevokeBuilderCodeAction:
+		return writeRevokeBuilderCodeAction(buf, v)
+
+	case *TransferAction:
+		return writeTransferAction(buf, v)
+
 	default:
-		return fmt.Errorf("unsupported order action type: %T", v)
+		return fmt.Errorf("unsupported action type: %T", v)
 	}
 }
 
@@ -209,4 +219,72 @@ func writeStopOrder(buf *bytes.Buffer, order *StopOrderAction) error {
 // https://docs.bulk.trade/api-reference/signing#stop-discriminant-5-and-takeprofit-discriminant-6
 func writeTakeProfitOrder(buf *bytes.Buffer, order *TakeProfitAction) error {
 	return writeStopOrder(buf, &order.StopOrderAction)
+}
+
+// https://docs.bulk.trade/api-reference/signing#approvebuildercode-discriminant-40
+func writeApproveBuilderCodeAction(buf *bytes.Buffer, action *BuilderCodeAction) error {
+	recp := base58.Decode(action.To)
+	if len(recp) != 32 {
+		return errors.New("builder recipient length should be 32 bytes")
+	}
+
+	buf.Write(recp)
+	buf.WriteByte(byte(action.Fee))
+
+	return nil
+}
+
+// https://docs.bulk.trade/api-reference/signing#revokebuildercode-discriminant-41
+func writeRevokeBuilderCodeAction(buf *bytes.Buffer, action *RevokeBuilderCodeAction) error {
+	recp := base58.Decode(action.To)
+	if len(recp) != 32 {
+		return errors.New("builder recipient length should be 32 bytes")
+	}
+
+	buf.Write(recp)
+	return nil
+}
+
+// https://docs.bulk.trade/api-reference/signing#transfer-discriminant-29
+func writeTransferAction(buf *bytes.Buffer, action *TransferAction) error {
+	var kind uint32
+	switch action.Kind {
+	case Internal:
+		kind = 0
+	case External:
+		kind = 1
+	default:
+		return fmt.Errorf("invalid transfer kind: %q", action.Kind)
+	}
+
+	from := base58.Decode(action.From)
+	if len(from) != 32 {
+		return fmt.Errorf("from pubkey must be 32 bytes, got %d", len(from))
+	}
+
+	to := base58.Decode(action.To)
+	if len(to) != 32 {
+		return fmt.Errorf("to pubkey must be 32 bytes, got %d", len(to))
+	}
+
+	err := binary.Write(buf, binary.LittleEndian, kind)
+	if err != nil {
+		return fmt.Errorf("unable to write transfer kind: %w", err)
+	}
+
+	buf.Write(from)
+	buf.Write(to)
+
+	err = binary.Write(buf, binary.LittleEndian, uint64(len(action.MarginSymbol)))
+	if err != nil {
+		return fmt.Errorf("unable to write margin symbol: %w", err)
+	}
+	buf.WriteString(action.MarginSymbol)
+
+	err = binary.Write(buf, binary.LittleEndian, action.MarginAmount)
+	if err != nil {
+		return fmt.Errorf("unable to write margin amount: %w", err)
+	}
+
+	return nil
 }

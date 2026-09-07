@@ -60,7 +60,7 @@ func TestWriteMarketOrderWithBuilderCodeAction(t *testing.T) {
 		Size:            0.1,
 		ReduceOnly:      false,
 		IsolatedAccount: true,
-		BuilderCode: &BuilderCode{
+		BuilderCode: &BuilderCodeAction{
 			To:  address,
 			Fee: 10,
 		},
@@ -105,14 +105,13 @@ func TestWriteMarketOrderWithBuilderCodeAction(t *testing.T) {
 
 func TestLimitOrderAction(t *testing.T) {
 	action := &LimitOrderAction{
-		MarketOrderAction: MarketOrderAction{
-			Symbol:          "BTC-USD",
-			Buy:             true,
-			Size:            0.1,
-			ReduceOnly:      false,
-			IsolatedAccount: true,
-			BuilderCode:     nil,
-		},
+		Symbol:          "BTC-USD",
+		Buy:             true,
+		Size:            0.1,
+		ReduceOnly:      false,
+		IsolatedAccount: true,
+		BuilderCode:     nil,
+
 		Price:       100_000,
 		TimeInForce: IOC,
 	}
@@ -330,6 +329,81 @@ func TestTakeProfitOrderAction(t *testing.T) {
 
 		0x01,
 	}
+
+	if !bytes.Equal(want, got.Bytes()) {
+		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
+	}
+}
+
+func TestApproveBuilderCodeAction(t *testing.T) {
+	recipient := []byte("gurtcryptogurtcryptogurtcryptogu")
+	action := &BuilderCodeAction{
+		To:  base58.Encode(recipient),
+		Fee: 10,
+	}
+
+	var got bytes.Buffer
+	if err := writeAction(&got, action); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []byte{0x28, 0x00, 0x00, 0x00}
+	want = append(want, recipient...)
+	want = append(want, 0x0a)
+
+	if !bytes.Equal(want, got.Bytes()) {
+		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
+	}
+}
+
+func TestRevokeBuilderCodeAction(t *testing.T) {
+	recipient := []byte("gurtcryptogurtcryptogurtcryptogu")
+	action := &RevokeBuilderCodeAction{
+		To: base58.Encode(recipient),
+	}
+
+	var got bytes.Buffer
+	if err := writeAction(&got, action); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []byte{0x29, 0x00, 0x00, 0x00}
+	want = append(want, recipient...)
+
+	if !bytes.Equal(want, got.Bytes()) {
+		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
+	}
+}
+
+func TestTransferAction(t *testing.T) {
+	from := []byte("gurtcryptogurtcryptogurtcryptogu")
+	to := []byte("bulkcryptobulkcryptobulkcryptobu")
+	action := &TransferAction{
+		Kind:         External,
+		From:         base58.Encode(from),
+		To:           base58.Encode(to),
+		MarginSymbol: "USDC",
+		MarginAmount: 100,
+	}
+
+	var got bytes.Buffer
+	if err := writeAction(&got, action); err != nil {
+		t.Fatal(err)
+	}
+
+	want := []byte{
+		0x1d, 0x00, 0x00, 0x00,
+		0x01, 0x00, 0x00, 0x00,
+	}
+	want = append(want, from...)
+	want = append(want, to...)
+	want = append(want,
+		0x04, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		'U', 'S', 'D', 'C',
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x59, 0x40,
+	)
 
 	if !bytes.Equal(want, got.Bytes()) {
 		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
