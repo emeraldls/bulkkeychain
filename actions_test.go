@@ -409,3 +409,26 @@ func TestTransferAction(t *testing.T) {
 		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
 	}
 }
+
+func TestAgentWalletCreation(t *testing.T) {
+	pubKy := []byte("gurtcryptogurtcryptogurtcryptogu")
+
+	action := &AgentWalletCreationAction{
+		PublicKey: base58.Encode(pubKy),
+		Delete:    false,
+	}
+
+	var got bytes.Buffer
+	err := writeAgentWalletAction(&got, action)
+	if err != nil {
+		t.Fatalf("unable to write action: %v", err)
+	}
+
+	want := []byte{}
+	want = append(want, pubKy...)
+	want = append(want, 0x00)
+
+	if !bytes.Equal(got.Bytes(), want) {
+		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
+	}
+}

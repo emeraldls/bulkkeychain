@@ -9,16 +9,17 @@ type Signing interface {
 }
 
 type Action struct {
-	LimitOrder         *LimitOrderAction        `json:"l,omitempty"`
-	MarketOrder        *MarketOrderAction       `json:"m,omitempty"`
-	ModifyOrder        *ModifyOrderAction       `json:"mod,omitempty"`
-	CancelOrder        *CancelSingleOrderAction `json:"cx,omitempty"`
-	CancelAllOrders    *CancelAllOrdersAction   `json:"cxa,omitempty"`
-	StopOrder          *StopOrderAction         `json:"st,omitempty"`
-	TakeProfitOrder    *TakeProfitAction        `json:"tp,omitempty"`
-	ApproveBuilderCode *BuilderCodeAction       `json:"abc,omitempty"`
-	RevokeBuilderCode  *RevokeBuilderCodeAction `json:"rbc,omitempty"`
-	Transfer           *TransferAction          `json:"transfer,omitempty"`
+	LimitOrder         *LimitOrderAction          `json:"l,omitempty"`
+	MarketOrder        *MarketOrderAction         `json:"m,omitempty"`
+	ModifyOrder        *ModifyOrderAction         `json:"mod,omitempty"`
+	CancelOrder        *CancelSingleOrderAction   `json:"cx,omitempty"`
+	CancelAllOrders    *CancelAllOrdersAction     `json:"cxa,omitempty"`
+	StopOrder          *StopOrderAction           `json:"st,omitempty"`
+	TakeProfitOrder    *TakeProfitAction          `json:"tp,omitempty"`
+	ApproveBuilderCode *BuilderCodeAction         `json:"abc,omitempty"`
+	RevokeBuilderCode  *RevokeBuilderCodeAction   `json:"rbc,omitempty"`
+	Transfer           *TransferAction            `json:"transfer,omitempty"`
+	AgentWallet        *AgentWalletCreationAction `json:"agentWalletCreation,omitempty"`
 }
 
 type LimitOrderAction struct {
@@ -126,6 +127,15 @@ func (RevokeBuilderCodeAction) Discriminant() uint32 {
 	return actionRevokeBuilderCode
 }
 
+type AgentWalletCreationAction struct {
+	PublicKey string `json:"a"`
+	Delete    bool   `json:"d"`
+}
+
+func (AgentWalletCreationAction) Discriminant() uint32 {
+	return actionAgentWalllet
+}
+
 type TransferKind string
 
 const (
@@ -197,7 +207,7 @@ const (
 	_
 	_
 	_
-	_
+	actionAgentWalllet
 	_
 	_
 	_

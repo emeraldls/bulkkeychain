@@ -114,6 +114,10 @@ func unwrapAction(action Action) (Signing, error) {
 		actions = append(actions, action.Transfer)
 	}
 
+	if action.AgentWallet != nil {
+		actions = append(actions, action.AgentWallet)
+	}
+
 	if len(actions) != 1 {
 		return nil, fmt.Errorf(
 			"expected exactly one action type, got %d",

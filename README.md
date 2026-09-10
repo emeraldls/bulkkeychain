@@ -68,6 +68,7 @@ I only supported the actions I needed for Clique, but I can add more based on co
 | Transfer | `transfer` | Supported |
 | Approve builder code | `abc` | Supported |
 | Revoke builder code | `rbc` | Supported |
+| Agent Wallet Creation | `agentWalletCreation` | Supported |
 
 ## Signing format
 

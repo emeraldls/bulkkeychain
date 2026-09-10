@@ -45,6 +45,9 @@ func writeAction(buf *bytes.Buffer, signAction Signing) error {
 	case *TransferAction:
 		return writeTransferAction(buf, v)
 
+	case *AgentWalletCreationAction:
+		return writeAgentWalletAction(buf, v)
+
 	default:
 		return fmt.Errorf("unsupported action type: %T", v)
 	}
@@ -285,6 +288,18 @@ func writeTransferAction(buf *bytes.Buffer, action *TransferAction) error {
 	if err != nil {
 		return fmt.Errorf("unable to write margin amount: %w", err)
 	}
+
+	return nil
+}
+
+func writeAgentWalletAction(buf *bytes.Buffer, action *AgentWalletCreationAction) error {
+	pubKey := base58.Decode(action.PublicKey)
+	if len(pubKey) != 32 {
+		return errors.New("public key should be 32 bytes")
+	}
+
+	buf.Write(pubKey)
+	writeBool(buf, action.Delete)
 
 	return nil
 }

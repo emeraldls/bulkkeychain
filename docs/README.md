@@ -82,6 +82,7 @@ Each `Action` must contain exactly one action type. Add more `Action` values to 
 | Transfer | `TransferAction` |
 | Approve builder code | `BuilderCodeAction` |
 | Revoke builder code | `RevokeBuilderCodeAction` |
+| AgentWalletCreation | `AgentWalletCreationAction` |
 
 Range/OCO, trigger basket, trailing stop, and on-fill actions are not supported.
 
