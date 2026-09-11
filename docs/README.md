@@ -41,6 +41,22 @@ if err != nil {
 
 `message` is a `SignMessage` ready to JSON-encode. The library signs the transaction but does not send it to Bulk.
 
+## Serialize without signing
+
+Use `SerializeMessage` when another service, such as Turnkey, holds the private key. Using the `input` above:
+
+```go
+signer := bulkkeychain.NewSigner(nil, bulkkeychain.Mainnet)
+payload, err := signer.SerializeMessage(input)
+if err != nil {
+	return err
+}
+
+// Pass payload.Bytes() to your external signer.
+```
+
+The returned `bytes.Buffer` contains the actions, nonce, account, and network domain—the same bytes used by `Sign`. No private key is needed to serialize. Do not call `Sign` on a signer with a nil keypair.
+
 ## Key pairs
 
 Generate a new key pair:
