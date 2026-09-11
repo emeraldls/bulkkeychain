@@ -42,6 +42,10 @@ func (s *Signer) SerializeMessage(input SignInput) (bytes.Buffer, error) {
 
 // https://docs.bulk.trade/api-reference/signing#what-gets-signed
 func (s *Signer) Sign(signInput SignInput) (*SignMessage, error) {
+	if s.keypair == nil {
+		return nil, errors.New("pass keypair in NewSigner to use Sign")
+	}
+
 	if len(s.keypair.privateKey) != ed25519.PrivateKeySize {
 		return &SignMessage{}, fmt.Errorf("private key must be %d bytes", ed25519.PrivateKeySize)
 	}
