@@ -8,7 +8,7 @@ import (
 )
 
 var benchmarkKeyPair *KeyPair
-var benchmarkMessage SignMessage
+var benchmarkMessage *SignMessage
 
 func BenchmarkNewKeyPair(b *testing.B) {
 	for b.Loop() {

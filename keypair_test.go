@@ -9,7 +9,10 @@ import (
 
 func TestKeyPair(t *testing.T) {
 	original := NewKeyPair()
-	loaded := NewKeyPair().WithBase58(base58.Encode(original.PrivateKey()))
+	loaded, err := NewKeyPair().WithBase58(base58.Encode(original.PrivateKey()))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if !bytes.Equal(loaded.PrivateKey(), original.PrivateKey()) {
 		t.Fatal("private keys do not match")

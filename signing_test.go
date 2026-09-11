@@ -46,7 +46,10 @@ func TestSign(t *testing.T) {
 		Account: account,
 	}
 
-	keypair := NewKeyPair().WithBase58(base58.Encode(privateKey))
+	keypair, err := NewKeyPair().WithBase58(base58.Encode(privateKey))
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	signer := NewSigner(keypair, Mainnet)
 

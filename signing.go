@@ -18,14 +18,14 @@ func NewSigner(keypair *KeyPair, domain DomainByte) *Signer {
 }
 
 // https://docs.bulk.trade/api-reference/signing#what-gets-signed
-func (s *Signer) Sign(signInput SignInput) (SignMessage, error) {
+func (s *Signer) Sign(signInput SignInput) (*SignMessage, error) {
 	if len(s.keypair.privateKey) != ed25519.PrivateKeySize {
-		return SignMessage{}, fmt.Errorf("private key must be %d bytes", ed25519.PrivateKeySize)
+		return &SignMessage{}, fmt.Errorf("private key must be %d bytes", ed25519.PrivateKeySize)
 	}
 
 	actions, err := serializeActions(signInput.Actions)
 	if err != nil {
-		return SignMessage{}, err
+		return &SignMessage{}, err
 	}
 
 	account := base58.Decode(signInput.Account)
@@ -35,7 +35,7 @@ func (s *Signer) Sign(signInput SignInput) (SignMessage, error) {
 
 	err = binary.Write(&message, binary.LittleEndian, signInput.Nonce)
 	if err != nil {
-		return SignMessage{}, err
+		return &SignMessage{}, err
 	}
 
 	message.Write(account)
@@ -44,7 +44,7 @@ func (s *Signer) Sign(signInput SignInput) (SignMessage, error) {
 	signature := ed25519.Sign(s.keypair.privateKey, message.Bytes())
 	signer := s.keypair.privateKey.Public().(ed25519.PublicKey)
 
-	var order SignMessage
+	var order *SignMessage
 	order.Actions = signInput.Actions
 	order.Account = signInput.Account
 	order.Nonce = signInput.Nonce
