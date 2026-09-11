@@ -17,31 +17,41 @@ func NewSigner(keypair *KeyPair, domain DomainByte) *Signer {
 	}
 }
 
+func (s *Signer) SerializeMessage(input SignInput) (bytes.Buffer, error) {
+
+	actions, err := serializeActions(input.Actions)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+
+	account := base58.Decode(input.Account)
+
+	var message = bytes.Buffer{}
+	message.Write(actions)
+
+	err = binary.Write(&message, binary.LittleEndian, input.Nonce)
+	if err != nil {
+		return bytes.Buffer{}, err
+	}
+
+	message.Write(account)
+	message.WriteByte(byte(s.domain))
+
+	return message, nil
+}
+
 // https://docs.bulk.trade/api-reference/signing#what-gets-signed
 func (s *Signer) Sign(signInput SignInput) (*SignMessage, error) {
 	if len(s.keypair.privateKey) != ed25519.PrivateKeySize {
 		return &SignMessage{}, fmt.Errorf("private key must be %d bytes", ed25519.PrivateKeySize)
 	}
 
-	actions, err := serializeActions(signInput.Actions)
+	msg, err := s.SerializeMessage(signInput)
 	if err != nil {
-		return &SignMessage{}, err
+		return nil, err
 	}
 
-	account := base58.Decode(signInput.Account)
-
-	var message = bytes.Buffer{}
-	message.Write(actions)
-
-	err = binary.Write(&message, binary.LittleEndian, signInput.Nonce)
-	if err != nil {
-		return &SignMessage{}, err
-	}
-
-	message.Write(account)
-	message.WriteByte(byte(s.domain))
-
-	signature := ed25519.Sign(s.keypair.privateKey, message.Bytes())
+	signature := ed25519.Sign(s.keypair.privateKey, msg.Bytes())
 	signer := s.keypair.privateKey.Public().(ed25519.PublicKey)
 
 	var order SignMessage
