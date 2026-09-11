@@ -18,7 +18,7 @@ go get github.com/emeraldls/bulkkeychain
 ## Usage
 
 ```go
-keypair := bulkkeychain.NewKeyPair().WithBase58(base58PrivateKey)
+keypair, err := bulkkeychain.NewKeyPair().WithBase58(base58PrivateKey)
 signer := bulkkeychain.NewSigner(keypair, bulkkeychain.Mainnet)
 
 input := bulkkeychain.SignInput{

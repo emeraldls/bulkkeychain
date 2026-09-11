@@ -13,7 +13,10 @@ go get github.com/emeraldls/bulkkeychain
 ## Sign a transaction
 
 ```go
-keypair := bulkkeychain.NewKeyPair().WithBase58(base58PrivateKey)
+keypair, err := bulkkeychain.NewKeyPair().WithBase58(base58PrivateKey)
+if err != nil {
+	return err
+}
 signer := bulkkeychain.NewSigner(keypair, bulkkeychain.Mainnet)
 
 input := bulkkeychain.SignInput{
