@@ -44,14 +44,14 @@ func (s *Signer) Sign(signInput SignInput) (*SignMessage, error) {
 	signature := ed25519.Sign(s.keypair.privateKey, message.Bytes())
 	signer := s.keypair.privateKey.Public().(ed25519.PublicKey)
 
-	var order *SignMessage
+	var order SignMessage
 	order.Actions = signInput.Actions
 	order.Account = signInput.Account
 	order.Nonce = signInput.Nonce
 	order.Signer = base58.Encode(signer)
 	order.Signature = base58.Encode(signature)
 
-	return order, nil
+	return &order, nil
 }
 
 func serializeActions(actions []Action) ([]byte, error) {
