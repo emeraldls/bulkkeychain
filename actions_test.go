@@ -432,3 +432,33 @@ func TestAgentWalletCreation(t *testing.T) {
 		t.Fatalf("expected: %x,\n got: %x", want, got.Bytes())
 	}
 }
+
+func TestUpdateUserSettings(t *testing.T) {
+	action := &UpdateUserSettingsAction{
+		MaxLeverage: map[string]float64{
+			"BTC-USD": 9,
+		},
+	}
+
+	var got bytes.Buffer
+	err := writeUpdateUserSettings(&got, action)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	want := []byte{
+		0x01, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+
+		0x07, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x00, 0x00,
+		'B', 'T', 'C', '-', 'U', 'S', 'D',
+
+		0x00, 0x00, 0x00, 0x00,
+		0x00, 0x00, 0x22, 0x40,
+	}
+
+	if !bytes.Equal(want, got.Bytes()) {
+		t.Fatalf("expected: %x, \ngot: %x", want, got.Bytes())
+	}
+}

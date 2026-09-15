@@ -21,6 +21,7 @@ type Action struct {
 	RevokeBuilderCode  *RevokeBuilderCodeAction   `json:"rbc,omitempty"`
 	Transfer           *TransferAction            `json:"transfer,omitempty"`
 	AgentWallet        *AgentWalletCreationAction `json:"agentWalletCreation,omitempty"`
+	UpdateUserSettings *UpdateUserSettingsAction  `json:"updateUserSettings,omitempty"`
 }
 
 type LimitOrderAction struct {
@@ -170,6 +171,14 @@ func (TransferAction) Discriminant() uint32 {
 	return actionTransfer
 }
 
+type UpdateUserSettingsAction struct {
+	MaxLeverage map[string]float64 `json:"m"`
+}
+
+func (UpdateUserSettingsAction) Discriminant() uint32 {
+	return actionUpdateUserSettings
+}
+
 // struct to send to bulk
 type SignMessage struct {
 	Actions   []Action `json:"actions"`
@@ -222,7 +231,7 @@ const (
 	_
 	_
 	actionAgentWalllet
-	_
+	actionUpdateUserSettings
 	_
 	_
 	_

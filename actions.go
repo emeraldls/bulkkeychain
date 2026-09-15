@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/btcsuite/btcutil/base58"
 )
@@ -47,6 +48,9 @@ func writeAction(buf *bytes.Buffer, signAction Signing) error {
 
 	case *AgentWalletCreationAction:
 		return writeAgentWalletAction(buf, v)
+
+	case *UpdateUserSettingsAction:
+		return writeUpdateUserSettings(buf, v)
 
 	default:
 		return fmt.Errorf("unsupported action type: %T", v)
@@ -292,6 +296,7 @@ func writeTransferAction(buf *bytes.Buffer, action *TransferAction) error {
 	return nil
 }
 
+// https://docs.bulk.trade/api-reference/signing#agentwalletcreation-discriminant-17
 func writeAgentWalletAction(buf *bytes.Buffer, action *AgentWalletCreationAction) error {
 	pubKey := base58.Decode(action.PublicKey)
 	if len(pubKey) != 32 {
@@ -300,6 +305,35 @@ func writeAgentWalletAction(buf *bytes.Buffer, action *AgentWalletCreationAction
 
 	buf.Write(pubKey)
 	writeBool(buf, action.Delete)
+
+	return nil
+}
+
+// https://docs.bulk.trade/api-reference/signing#updateusersettings-discriminant-18
+func writeUpdateUserSettings(buf *bytes.Buffer, action *UpdateUserSettingsAction) error {
+	binary.Write(buf, binary.LittleEndian, uint64(len(action.MaxLeverage)))
+
+	if len(action.MaxLeverage) > 1 {
+		return errors.New("submit one leverage setting per action to avoid signing order mismatches")
+	}
+
+	for symbol, leverage := range action.MaxLeverage {
+		if math.IsNaN(leverage) || leverage < 1 || leverage > 50 {
+			return errors.New("leverage has to be between 1 & 50")
+		}
+
+		err := binary.Write(buf, binary.LittleEndian, uint64(len(symbol)))
+		if err != nil {
+			return fmt.Errorf("unable to write margin symbol: %v", err)
+		}
+
+		buf.WriteString(symbol)
+
+		err = binary.Write(buf, binary.LittleEndian, leverage)
+		if err != nil {
+			return fmt.Errorf("unable to write max leverage: %v", err)
+		}
+	}
 
 	return nil
 }
