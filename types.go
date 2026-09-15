@@ -2,6 +2,7 @@ package bulkkeychain
 
 import (
 	"crypto/ed25519"
+	"fmt"
 )
 
 type Signing interface {
@@ -34,6 +35,19 @@ type LimitOrderAction struct {
 }
 
 type TimeInForce uint32
+
+func (t TimeInForce) MarshalJSON() ([]byte, error) {
+	switch t {
+	case GTC:
+		return []byte(`"GTC"`), nil
+	case IOC:
+		return []byte(`"IOC"`), nil
+	case ALO:
+		return []byte(`"ALO"`), nil
+	default:
+		return nil, fmt.Errorf("invalid time in force: %d", t)
+	}
+}
 
 const (
 	GTC TimeInForce = iota

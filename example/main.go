@@ -25,16 +25,22 @@ func main() {
 		log.Fatal("PRIVATE_KEY is missing from .env")
 	}
 
-	keypair := bulkkeychain.NewKeyPair().WithBase58(privateKey)
+	keypair, err := bulkkeychain.NewKeyPair().WithBase58(privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	signer := bulkkeychain.NewSigner(keypair, bulkkeychain.Testnet)
 
 	message, err := signer.Sign(bulkkeychain.SignInput{
 		Actions: []bulkkeychain.Action{
 			{
-				MarketOrder: &bulkkeychain.MarketOrderAction{
-					Symbol: "BTC-USD",
-					Buy:    true,
-					Size:   0.001,
+				LimitOrder: &bulkkeychain.LimitOrderAction{
+					Symbol:      "BTC-USD",
+					Buy:         true,
+					Size:        0.001,
+					Price:       77876,
+					TimeInForce: bulkkeychain.IOC,
 				},
 			},
 		},
