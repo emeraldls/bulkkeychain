@@ -382,7 +382,6 @@ func TestTransferAction(t *testing.T) {
 		Kind:         External,
 		From:         base58.Encode(from),
 		To:           base58.Encode(to),
-		MarginSymbol: "USDC",
 		MarginAmount: 100,
 	}
 
@@ -398,9 +397,6 @@ func TestTransferAction(t *testing.T) {
 	want = append(want, from...)
 	want = append(want, to...)
 	want = append(want,
-		0x04, 0x00, 0x00, 0x00,
-		0x00, 0x00, 0x00, 0x00,
-		'U', 'S', 'D', 'C',
 		0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x59, 0x40,
 	)

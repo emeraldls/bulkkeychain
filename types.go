@@ -159,12 +159,10 @@ const (
 )
 
 type TransferAction struct {
-	Kind TransferKind `json:"k"`
-	From string       `json:"from"`
-	To   string       `json:"to"`
-	// eg USDC
-	MarginSymbol string  `json:"marginSymbol"`
-	MarginAmount float64 `json:"marginAmount"`
+	Kind         TransferKind `json:"k"`
+	From         string       `json:"from"`
+	To           string       `json:"to"`
+	MarginAmount float64      `json:"marginAmount"`
 }
 
 func (TransferAction) Discriminant() uint32 {

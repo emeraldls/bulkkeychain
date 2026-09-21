@@ -282,12 +282,6 @@ func writeTransferAction(buf *bytes.Buffer, action *TransferAction) error {
 	buf.Write(from)
 	buf.Write(to)
 
-	err = binary.Write(buf, binary.LittleEndian, uint64(len(action.MarginSymbol)))
-	if err != nil {
-		return fmt.Errorf("unable to write margin symbol: %w", err)
-	}
-	buf.WriteString(action.MarginSymbol)
-
 	err = binary.Write(buf, binary.LittleEndian, action.MarginAmount)
 	if err != nil {
 		return fmt.Errorf("unable to write margin amount: %w", err)
