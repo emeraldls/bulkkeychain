@@ -85,29 +85,41 @@ func serializeActions(actions []Action) ([]byte, error) {
 		return nil, errors.New("add at least one action")
 	}
 
+	orderActions := make([]Signing, len(actions))
+	useV3 := false
+	for i, action := range actions {
+		orderAction, err := unwrapAction(action)
+		if err != nil {
+			return nil, fmt.Errorf("action %w", err)
+		}
+		orderActions[i] = orderAction
+		if code, _ := orderBuilderCode(orderAction); code != nil {
+			useV3 = true
+		}
+	}
+
 	buf := bytes.Buffer{}
-	buf.WriteString("\xff\xff\xff\xff\xff\xff\xff\xffbulk-actions\x03")
+	if useV3 {
+		buf.WriteString("\xff\xff\xff\xff\xff\xff\xff\xffbulk-actions\x03")
+	}
 	err := binary.Write(&buf, binary.LittleEndian, uint64(len(actions)))
 	if err != nil {
 		return nil, fmt.Errorf("unablet to write actions: %w", err)
 	}
 
-	for _, action := range actions {
-		orderAction, err := unwrapAction(action)
-		if err != nil {
-			return nil, fmt.Errorf("action %w", err)
-		}
-
+	for _, orderAction := range orderActions {
 		err = writeAction(&buf, orderAction)
 		if err != nil {
 			return nil, fmt.Errorf("action: %T, err: %w", orderAction, err)
 		}
 
-		if code, eligible := orderBuilderCode(orderAction); eligible && code == nil {
-			buf.WriteByte(0)
-		}
-		if _, market := orderAction.(*MarketOrderAction); market {
-			buf.WriteByte(0)
+		if useV3 {
+			if code, eligible := orderBuilderCode(orderAction); eligible && code == nil {
+				buf.WriteByte(0)
+			}
+			if _, market := orderAction.(*MarketOrderAction); market {
+				buf.WriteByte(0)
+			}
 		}
 	}
 

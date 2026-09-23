@@ -77,7 +77,7 @@ I only supported the actions I needed for Clique, but I can add more based on co
 Signatures follow Bulk's canonical binary format:
 
 ```text
-V3 prefix || wincode(actions) || nonce_le_u64 || account_pubkey || signature_domain
+[V3 prefix when an order includes a builder code] || wincode(actions) || nonce_le_u64 || account_pubkey || signature_domain
 ```
 
 
