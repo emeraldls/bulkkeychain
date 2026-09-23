@@ -65,6 +65,18 @@ func (s *Signer) Sign(signInput SignInput) (*SignMessage, error) {
 	order.Signer = base58.Encode(signer)
 	order.Signature = base58.Encode(signature)
 
+	order.OrderIDs = make([]string, len(signInput.Actions))
+	for index, action := range signInput.Actions {
+		if action.LimitOrder == nil && action.MarketOrder == nil && action.StopOrder == nil && action.TakeProfitOrder == nil {
+			continue
+		}
+		id, err := ComputeOrderID(action, signInput.Account, signInput.Nonce, uint32(index))
+		if err != nil {
+			return nil, err
+		}
+		order.OrderIDs[index] = id
+	}
+
 	return &order, nil
 }
 
@@ -74,6 +86,7 @@ func serializeActions(actions []Action) ([]byte, error) {
 	}
 
 	buf := bytes.Buffer{}
+	buf.WriteString("\xff\xff\xff\xff\xff\xff\xff\xffbulk-actions\x03")
 	err := binary.Write(&buf, binary.LittleEndian, uint64(len(actions)))
 	if err != nil {
 		return nil, fmt.Errorf("unablet to write actions: %w", err)
@@ -89,9 +102,31 @@ func serializeActions(actions []Action) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("action: %T, err: %w", orderAction, err)
 		}
+
+		if code, eligible := orderBuilderCode(orderAction); eligible && code == nil {
+			buf.WriteByte(0)
+		}
+		if _, market := orderAction.(*MarketOrderAction); market {
+			buf.WriteByte(0)
+		}
 	}
 
 	return buf.Bytes(), nil
+}
+
+func orderBuilderCode(action Signing) (*BuilderCodeAction, bool) {
+	switch order := action.(type) {
+	case *MarketOrderAction:
+		return order.BuilderCode, true
+	case *LimitOrderAction:
+		return order.BuilderCode, true
+	case *StopOrderAction:
+		return order.BuilderCode, true
+	case *TakeProfitAction:
+		return order.BuilderCode, true
+	default:
+		return nil, false
+	}
 }
 
 func unwrapAction(action Action) (Signing, error) {

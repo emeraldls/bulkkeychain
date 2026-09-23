@@ -77,8 +77,11 @@ I only supported the actions I needed for Clique, but I can add more based on co
 Signatures follow Bulk's canonical binary format:
 
 ```text
-wincode(actions) || nonce_le_u64 || account_pubkey || signature_domain
+V3 prefix || wincode(actions) || nonce_le_u64 || account_pubkey || signature_domain
 ```
+
+
+`Sign` returns `SignMessage.OrderIDs`, aligned with `Actions` (empty entries for non-order actions). These IDs are excluded from the JSON sent to Bulk. Order IDs exclude V3 framing and builder commission; `ComputeOrderID` is also available directly.
 
 The supported domains are `Mainnet`, `Testnet`, and `Devnet`. See Bulk's [transaction signing documentation](https://docs.bulk.trade/api-reference/signing) and [order API reference](https://docs.bulk.trade/api-reference/placeOrder) for the protocol specification.
 

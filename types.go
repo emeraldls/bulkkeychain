@@ -105,12 +105,13 @@ func (CancelAllOrdersAction) Discriminant() uint32 {
 }
 
 type StopOrderAction struct {
-	Symbol           string   `json:"c"`
-	TriggerDirection bool     `json:"d"`
-	Size             float64  `json:"sz"`
-	TriggerPrice     float64  `json:"tr"`
-	LimitPrice       *float64 `json:"lim,omitempty"`
-	IsolatedAccount  bool     `json:"i"`
+	Symbol           string             `json:"c"`
+	TriggerDirection bool               `json:"d"`
+	Size             float64            `json:"sz"`
+	TriggerPrice     float64            `json:"tr"`
+	LimitPrice       *float64           `json:"lim,omitempty"`
+	IsolatedAccount  bool               `json:"i"`
+	BuilderCode      *BuilderCodeAction `json:"builderCode,omitempty"`
 }
 
 func (StopOrderAction) Discriminant() uint32 {
@@ -184,6 +185,8 @@ type SignMessage struct {
 	Account   string   `json:"account"`
 	Signer    string   `json:"signer"`
 	Signature string   `json:"signature"`
+	// OrderIDs aligns with Actions; non-order actions have an empty entry.
+	OrderIDs []string `json:"-"`
 }
 
 type SignInput struct {

@@ -79,16 +79,7 @@ func writeMarketOrder(buf *bytes.Buffer, order *MarketOrderAction) error {
 		return nil
 	}
 
-	recipient := base58.Decode(order.BuilderCode.To)
-	if len(recipient) != 32 {
-		return fmt.Errorf("builder code must have a length of 32bbyte: current length: %d", len(recipient))
-	}
-
-	buf.WriteByte(1)
-	buf.Write(recipient)
-	buf.WriteByte(byte(order.BuilderCode.Fee))
-
-	return nil
+	return writeBuilderCode(buf, order.BuilderCode)
 }
 
 // https://docs.bulk.trade/api-reference/signing#limitorder-discriminant-1
@@ -123,15 +114,19 @@ func writeLimitOrder(buf *bytes.Buffer, order *LimitOrderAction) error {
 		return nil
 	}
 
-	recipient := base58.Decode(order.BuilderCode.To)
-	if len(recipient) != 32 {
-		return fmt.Errorf("builder code must have a length of 32bbyte: current length: %d", len(recipient))
-	}
+	return writeBuilderCode(buf, order.BuilderCode)
+}
 
+// writeBuilderCode writes a present commission; absent options are emitted by
+// serializeActions for the V3 batch.
+func writeBuilderCode(buf *bytes.Buffer, code *BuilderCodeAction) error {
+	recipient := base58.Decode(code.To)
+	if len(recipient) != 32 {
+		return fmt.Errorf("builder recipient must be 32 bytes, got %d", len(recipient))
+	}
 	buf.WriteByte(1)
 	buf.Write(recipient)
-	buf.WriteByte(byte(order.BuilderCode.Fee))
-
+	buf.WriteByte(byte(code.Fee))
 	return nil
 }
 
@@ -219,6 +214,9 @@ func writeStopOrder(buf *bytes.Buffer, order *StopOrderAction) error {
 	}
 
 	writeBool(buf, order.IsolatedAccount)
+	if order.BuilderCode != nil {
+		return writeBuilderCode(buf, order.BuilderCode)
+	}
 
 	return nil
 }
