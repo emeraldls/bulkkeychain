@@ -59,7 +59,7 @@ I only supported the actions I needed for Clique, but I can add more based on co
 | Action | Tag | Support |
 | --- | --- | --- |
 | Market | `m` | Supported |
-| Limit (GTC, IOC, ALO) | `l` | Supported |
+| Limit (GTC, IOC, ALO, ALO_SLIDE, ALO_JOIN) | `l` | Supported |
 | Modify | `mod` | Supported |
 | Cancel one | `cx` | Supported |
 | Cancel all | `cxa` | Supported |
@@ -77,11 +77,13 @@ I only supported the actions I needed for Clique, but I can add more based on co
 Signatures follow Bulk's canonical binary format:
 
 ```text
-[V3 prefix when an order includes a builder code] || wincode(actions) || nonce_le_u64 || account_pubkey || signature_domain
+[V4 prefix for stop/TP batches; otherwise V3 when an order includes a builder code] || wincode(actions) || nonce_le_u64 || account_pubkey || signature_domain
 ```
 
 
-`Sign` returns `SignMessage.OrderIDs`, aligned with `Actions` (empty entries for non-order actions). These IDs are excluded from the JSON sent to Bulk. Order IDs exclude V3 framing and builder commission; `ComputeOrderID` is also available directly.
+`Sign` returns `SignMessage.OrderIDs`, aligned with `Actions` (empty entries for non-order actions). These IDs are excluded from the JSON sent to Bulk. Order IDs exclude version framing and builder commission; `ComputeOrderID` is also available directly.
+
+`StopOrderAction.Slippage` (also embedded in `TakeProfitAction`) accepts an optional number of basis points. `nil` uses the market default; a pointer to zero explicitly signs zero. Any batch containing stop/TP uses V4, including when slippage is omitted.
 
 The supported domains are `Mainnet`, `Testnet`, and `Devnet`. See Bulk's [transaction signing documentation](https://docs.bulk.trade/api-reference/signing) and [order API reference](https://docs.bulk.trade/api-reference/placeOrder) for the protocol specification.
 

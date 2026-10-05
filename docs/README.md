@@ -105,6 +105,8 @@ Each `Action` must contain exactly one action type. Add more `Action` values to 
 | Update User settings | `UpdateUserSettingsAction` |
 
 
+Limit orders support `GTC`, `IOC`, `ALO`, `ALO_SLIDE`, and `ALO_JOIN`. Stop and take-profit orders accept optional `Slippage` in basis points (`*float64`); `nil` uses the market default. Batches containing either conditional order use Bulk's V4 signing format, even when slippage is omitted.
+
 Range/OCO, trigger basket, trailing stop, and on-fill actions are not supported.
 
 ## Links

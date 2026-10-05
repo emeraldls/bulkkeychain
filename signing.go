@@ -86,7 +86,7 @@ func serializeActions(actions []Action) ([]byte, error) {
 	}
 
 	orderActions := make([]Signing, len(actions))
-	useV3 := false
+	version := byte(0)
 	for i, action := range actions {
 		orderAction, err := unwrapAction(action)
 		if err != nil {
@@ -94,13 +94,18 @@ func serializeActions(actions []Action) ([]byte, error) {
 		}
 		orderActions[i] = orderAction
 		if code, _ := orderBuilderCode(orderAction); code != nil {
-			useV3 = true
+			version = max(version, 3)
+		}
+		switch orderAction.(type) {
+		case *StopOrderAction, *TakeProfitAction:
+			version = 4
 		}
 	}
 
 	buf := bytes.Buffer{}
-	if useV3 {
-		buf.WriteString("\xff\xff\xff\xff\xff\xff\xff\xffbulk-actions\x03")
+	if version != 0 {
+		buf.WriteString("\xff\xff\xff\xff\xff\xff\xff\xffbulk-actions")
+		buf.WriteByte(version)
 	}
 	err := binary.Write(&buf, binary.LittleEndian, uint64(len(actions)))
 	if err != nil {
@@ -113,9 +118,28 @@ func serializeActions(actions []Action) ([]byte, error) {
 			return nil, fmt.Errorf("action: %T, err: %w", orderAction, err)
 		}
 
-		if useV3 {
+		if version != 0 {
 			if code, eligible := orderBuilderCode(orderAction); eligible && code == nil {
 				buf.WriteByte(0)
+			}
+			// V4 binds conditional slippage, including an absent override.
+			var slippage *float64
+			conditional := false
+			switch order := orderAction.(type) {
+			case *StopOrderAction:
+				slippage, conditional = order.Slippage, true
+			case *TakeProfitAction:
+				slippage, conditional = order.Slippage, true
+			}
+			if conditional {
+				if slippage == nil {
+					buf.WriteByte(0)
+				} else {
+					buf.WriteByte(1)
+					if err := writeScaledFloat(&buf, *slippage); err != nil {
+						return nil, fmt.Errorf("conditional slippage: %w", err)
+					}
+				}
 			}
 			if _, market := orderAction.(*MarketOrderAction); market {
 				buf.WriteByte(0)

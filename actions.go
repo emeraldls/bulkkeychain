@@ -84,6 +84,9 @@ func writeMarketOrder(buf *bytes.Buffer, order *MarketOrderAction) error {
 
 // https://docs.bulk.trade/api-reference/signing#limitorder-discriminant-1
 func writeLimitOrder(buf *bytes.Buffer, order *LimitOrderAction) error {
+	if order.TimeInForce > ALO_JOIN {
+		return fmt.Errorf("invalid time in force: %d", order.TimeInForce)
+	}
 	err := binary.Write(buf, binary.LittleEndian, uint64(len(order.Symbol)))
 	if err != nil {
 		return fmt.Errorf("unable to write symbol: %s", err.Error())
@@ -117,8 +120,9 @@ func writeLimitOrder(buf *bytes.Buffer, order *LimitOrderAction) error {
 	return writeBuilderCode(buf, order.BuilderCode)
 }
 
+// https://docs.bulk.trade/api-reference/signing#approvebuildercode-discriminant-40
 // writeBuilderCode writes a present commission; absent options are emitted by
-// serializeActions for the V3 batch.
+// serializeActions for V3 and V4 batches.
 func writeBuilderCode(buf *bytes.Buffer, code *BuilderCodeAction) error {
 	recipient := base58.Decode(code.To)
 	if len(recipient) != 32 {

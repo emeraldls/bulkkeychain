@@ -45,6 +45,10 @@ func (t TimeInForce) MarshalJSON() ([]byte, error) {
 		return []byte(`"IOC"`), nil
 	case ALO:
 		return []byte(`"ALO"`), nil
+	case ALO_SLIDE:
+		return []byte(`"ALO_SLIDE"`), nil
+	case ALO_JOIN:
+		return []byte(`"ALO_JOIN"`), nil
 	default:
 		return nil, fmt.Errorf("invalid time in force: %d", t)
 	}
@@ -54,6 +58,8 @@ const (
 	GTC TimeInForce = iota
 	IOC
 	ALO
+	ALO_SLIDE
+	ALO_JOIN
 )
 
 func (LimitOrderAction) Discriminant() uint32 {
@@ -112,6 +118,7 @@ type StopOrderAction struct {
 	LimitPrice       *float64           `json:"lim,omitempty"`
 	IsolatedAccount  bool               `json:"i"`
 	BuilderCode      *BuilderCodeAction `json:"builderCode,omitempty"`
+	Slippage         *float64           `json:"slippage,omitempty"` // Basis points; nil uses the market default.
 }
 
 func (StopOrderAction) Discriminant() uint32 {
